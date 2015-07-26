@@ -5806,8 +5806,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, Promi
                     write(`function ${exportStarFunction}(m) {`);
                     increaseIndent();
                     writeLine();
-                    write(`var exports = {};`);
-                    writeLine();
                     write(`for(var n in m) {`);
                     increaseIndent();
                     writeLine();
@@ -5815,12 +5813,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, Promi
                     if (localNames) {
                         write(`&& !${localNames}.hasOwnProperty(n)`);
                     }
-                    write(`) exports[n] = m[n];`);
+                    write(`) ${exportFunctionForFile}(n, m[n]);`);
                     decreaseIndent();
                     writeLine();
                     write("}");
-                    writeLine();
-                    write(`${exportFunctionForFile}(exports);`)
                     decreaseIndent();
                     writeLine();
                     write("}");
@@ -6162,23 +6158,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, Promi
                             if ((<ExportDeclaration>importNode).exportClause) {
                                 // export {a, b as c} from 'foo'
                                 // emit as:
-                                // var reexports = {}
-                                // reexports['a'] = _foo["a"];
-                                // reexports['c'] = _foo["b"];
-                                // exports_(reexports);
-                                let reexportsVariableName = makeUniqueName("reexports");
-                                writeLine();
-                                write(`var ${reexportsVariableName} = {};`)
-                                writeLine();
+                                // exports('a', _foo["a"])
+                                // exports('c', _foo["b"])
                                 for (let e of (<ExportDeclaration>importNode).exportClause.elements) {
-                                    write(`${reexportsVariableName}["`);
-                                    emitNodeWithoutSourceMap(e.name);
-                                    write(`"] = ${parameterName}["`);
-                                    emitNodeWithoutSourceMap(e.propertyName || e.name);
-                                    write(`"];`);
                                     writeLine();
+                                    write(`${exportFunctionForFile}("`);
+                                    emitNodeWithoutSourceMap(e.name);
+                                    write(`", ${parameterName}["`);
+                                    emitNodeWithoutSourceMap(e.propertyName || e.name);
+                                    write(`"]);`);
                                 }
-                                write(`${exportFunctionForFile}(${reexportsVariableName});`);
                             }
                             else {
                                 writeLine();
